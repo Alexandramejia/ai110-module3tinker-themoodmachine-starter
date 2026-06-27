@@ -23,6 +23,14 @@ POSITIVE_WORDS = [
     "chill",
     "relaxed",
     "amazing",
+    # new
+    "lowkey",
+    "blessed",
+    "grateful",
+    "proud",
+    "vibing",
+    "thrilled",
+    "lit",
 ]
 
 NEGATIVE_WORDS = [
@@ -36,6 +44,13 @@ NEGATIVE_WORDS = [
     "stressed",
     "hate",
     "boring",
+    # new
+    "miserable",
+    "frustrated",
+    "exhausted",
+    "drained",
+    "depressed",
+    "mad",
 ]
 
 # ---------------------------------------------------------------------
@@ -46,10 +61,19 @@ NEGATIVE_WORDS = [
 SAMPLE_POSTS = [
     "I love this class so much",
     "Today was a terrible day",
-    "Feeling tired but kind of hopeful",
-    "This is fine",
+    "Feeling tired but kind of hopeful",   # tired vs hopeful — which wins?
+    "This is fine",                         # neutral or sarcasm?
     "So excited for the weekend",
-    "I am not happy about this",
+    "I am not happy about this",            # "not" flips it — does the model catch that?
+    # new
+    "im lowkey drained from work but still grateful",
+    "im mad happy rn no cap 😂",            # "mad" = slang for "very" here, not angry
+    "I absolutely love getting stuck in traffic 🙃",  # sarcasm — words say positive, meaning is negative
+    "honestly exhausted but proud of how far I've come",
+    "this week has been rough but the weekend is so close",
+    "vibing so hard right now, life is good 💀",  # 💀 used positively in gen z slang
+    "not sad just tired of everything",     # "sad" negated but still negative
+    "stressed but blessed fr",
 ]
 
 # Human labels for each post above.
@@ -61,11 +85,31 @@ SAMPLE_POSTS = [
 TRUE_LABELS = [
     "positive",  # "I love this class so much"
     "negative",  # "Today was a terrible day"
-    "mixed",     # "Feeling tired but kind of hopeful"
-    "neutral",   # "This is fine"
+    "mixed",     # "Feeling tired but kind of hopeful" — could argue either way
+    "neutral",   # "This is fine" — neutral or sarcasm?
     "positive",  # "So excited for the weekend"
-    "negative",  # "I am not happy about this"
+    "negative",  # "I am not happy about this" — does the model catch "not"?
+    # new
+    "mixed",     # "im lowkey drained from work but still grateful"
+    "positive",  # "im mad happy rn no cap 😂" — "mad" as slang, watch rule-based get this wrong
+    "negative",  # "I absolutely love getting stuck in traffic 🙃" — sarcasm flips it
+    "mixed",     # "honestly exhausted but proud of how far I've come"
+    "mixed",     # "this week has been rough but the weekend is so close"
+    "positive",  # "vibing so hard right now, life is good 💀" — would you label differently bc of 💀?
+    "negative",  # "not sad just tired of everything" — "sad" negated but still negative
+    "mixed",     # "stressed but blessed fr"
 ]
+
+#                   !!!! could have also added entries using .append() like this: !!!!
+# SAMPLE_POSTS.append("im lowkey drained from work but still grateful")
+# TRUE_LABELS.append("mixed")
+
+#                   !!! Part 1: Once you've finished adding words and posts above, run: !!!
+#   python main.py
+# This confirms the program doesn't crash with your additions.
+# Predictions will show None until score_text and predict_label
+# in mood_analyzer.py are implemented — that's expected for now.
+
 
 # TODO: Add 5-10 more posts and labels.
 #
