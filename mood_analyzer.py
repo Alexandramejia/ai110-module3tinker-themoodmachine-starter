@@ -72,6 +72,8 @@ class MoodAnalyzer:
         unicode_emojis = {
             '😂': 'happy', '😊': 'happy', '😍': 'happy', '🥰': 'happy',
             '😀': 'happy', '😁': 'happy', '🎉': 'happy', '❤️': 'happy',
+            '💀': 'happy', '🔥': 'happy',  # gen z: 💀 = dying laughing, 🔥 = fire/amazing
+            '🙃': 'sad',                   # upside-down face = sarcasm/frustration
             '😢': 'sad',   '😭': 'sad',   '😞': 'sad',   '💔': 'sad',
             '🥲': 'sad',   '😩': 'sad',
             '😠': 'angry', '😡': 'angry', '🤬': 'angry', '😤': 'angry',

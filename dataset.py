@@ -31,6 +31,13 @@ POSITIVE_WORDS = [
     "vibing",
     "thrilled",
     "lit",
+    "hopeful",
+    "close",
+    "sick",
+    "wicked",
+    "fire",
+    "goated",
+    "bussin",
 ]
 
 NEGATIVE_WORDS = [
@@ -50,7 +57,7 @@ NEGATIVE_WORDS = [
     "exhausted",
     "drained",
     "depressed",
-    "mad",
+    "rough",
 ]
 
 # ---------------------------------------------------------------------
