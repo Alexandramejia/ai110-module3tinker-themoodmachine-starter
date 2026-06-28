@@ -9,6 +9,7 @@ This class starts with very simple logic:
   - Convert that score into a mood label
 """
 
+import re
 from typing import List, Dict, Tuple, Optional
 
 from dataset import POSITIVE_WORDS, NEGATIVE_WORDS
@@ -53,8 +54,41 @@ class MoodAnalyzer:
           - Normalize repeated characters ("soooo" -> "soo")
         """
         cleaned = text.strip().lower()
-        tokens = cleaned.split()
 
+        # Swap emoticons/emojis for plain words BEFORE removing punctuation,
+        # so the scorer can still read them as positive/negative signals.
+        # Replace ASCII emoticons with sentiment words before punctuation is stripped
+        ascii_emoticons = {
+            ':-)': 'happy', ':)': 'happy', '=)': 'happy',
+            ':-(': 'sad',   ':(': 'sad',   ":'(": 'sad',
+            ':-d': 'happy', ':d': 'happy',
+            ';-)': 'happy', ';)': 'happy',
+            ':-/': 'uncertain', ':/': 'uncertain',
+        }
+        for emoticon, word in ascii_emoticons.items():
+            cleaned = cleaned.replace(emoticon, f' {word} ')
+
+        # Replace common Unicode emojis with sentiment words
+        unicode_emojis = {
+            '😂': 'happy', '😊': 'happy', '😍': 'happy', '🥰': 'happy',
+            '😀': 'happy', '😁': 'happy', '🎉': 'happy', '❤️': 'happy',
+            '😢': 'sad',   '😭': 'sad',   '😞': 'sad',   '💔': 'sad',
+            '🥲': 'sad',   '😩': 'sad',
+            '😠': 'angry', '😡': 'angry', '🤬': 'angry', '😤': 'angry',
+        }
+        for emoji, word in unicode_emojis.items():
+            cleaned = cleaned.replace(emoji, f' {word} ')
+
+        # Drop any remaining non-ASCII characters (other emojis, symbols)
+        cleaned = re.sub(r'[^\x00-\x7F]+', ' ', cleaned)
+
+        # Normalize repeated characters: "sooooo" -> "soo" (cap at 2)
+        cleaned = re.sub(r'(.)\1{2,}', r'\1\1', cleaned)
+
+        # Remove everything that isn't a letter or whitespace
+        cleaned = re.sub(r'[^a-z\s]', '', cleaned)
+
+        tokens = [t for t in cleaned.split() if t]
         return tokens
 
     # ---------------------------------------------------------------------
@@ -75,15 +109,21 @@ class MoodAnalyzer:
           - Give some words higher weights than others (for example "hate" < "annoyed")
           - Treat emojis or slang (":)", "lol", "💀") as strong signals
         """
-        # TODO: Implement this method.
-        #   1. Call self.preprocess(text) to get tokens.
-        #   2. Loop over the tokens.
-        #   3. Increase the score for positive words, decrease for negative words.
-        #   4. Return the total score.
-        #
-        # Hint: if you implement negation, you may want to look at pairs of tokens,
-        # like ("not", "happy") or ("never", "fun").
-        pass
+        tokens = self.preprocess(text)
+        score = 0
+
+        # Loop through each word in the sentence and check if it's in our word lists.
+        # If the word right before it is "not"/"never"/"no", flip the score effect
+        # (e.g. "not happy" scores -1 instead of +1, "not bad" scores +1 instead of -1).
+        for i, token in enumerate(tokens):
+            negated = i > 0 and tokens[i - 1] in {'not', 'never', 'no'}
+
+            if token in self.positive_words:
+                score += -1 if negated else 1
+            elif token in self.negative_words:
+                score += 1 if negated else -1
+
+        return score
 
     # ---------------------------------------------------------------------
     # Label prediction
@@ -105,12 +145,22 @@ class MoodAnalyzer:
         Just remember that whatever labels you return should match the labels
         you use in TRUE_LABELS in dataset.py if you care about accuracy.
         """
-        # TODO: Implement this method.
-        #   1. Call self.score_text(text) to get the numeric score.
-        #   2. Return "positive" if the score is above 0.
-        #   3. Return "negative" if the score is below 0.
-        #   4. Return "neutral" otherwise.
-        pass
+        score = self.score_text(text)
+        tokens = self.preprocess(text)
+
+        # Check whether the sentence contains both positive and negative words
+        has_positive = any(t in self.positive_words for t in tokens)
+        has_negative = any(t in self.negative_words for t in tokens)
+
+        # If both sides appear, call it mixed regardless of the final score
+        if has_positive and has_negative:
+            return "mixed"
+        elif score > 0:
+            return "positive"
+        elif score < 0:
+            return "negative"
+        else:
+            return "neutral"
 
     # ---------------------------------------------------------------------
     # Explanations (optional but recommended)
@@ -132,22 +182,18 @@ class MoodAnalyzer:
         The current implementation is a placeholder so the code runs even
         before you implement it.
         """
+        # We call preprocess here to get the word list so we can collect which words
+        # were positive/negative hits and show them in the output.
+        # score_text and predict_label also call preprocess internally but only
+        # return a number/label — they don't share the word list back.
         tokens = self.preprocess(text)
+        positive_hits = [t for t in tokens if t in self.positive_words]
+        negative_hits = [t for t in tokens if t in self.negative_words]
 
-        positive_hits: List[str] = []
-        negative_hits: List[str] = []
-        score = 0
-
-        for token in tokens:
-            if token in self.positive_words:
-                positive_hits.append(token)
-                score += 1
-            if token in self.negative_words:
-                negative_hits.append(token)
-                score -= 1
+        score = self.score_text(text)
+        label = self.predict_label(text)
 
         return (
-            f"Score = {score} "
-            f"(positive: {positive_hits or '[]'}, "
-            f"negative: {negative_hits or '[]'})"
+            f"Label: {label} | Score: {score} | "
+            f"positive words: {positive_hits} | negative words: {negative_hits}"
         )
